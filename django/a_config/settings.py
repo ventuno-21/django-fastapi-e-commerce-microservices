@@ -25,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-y*!o6=vea#y!@^jo@veccq&7kqkut#4%#n+kd1-9#d35z%#(3b"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -162,10 +162,34 @@ AUTH_USER_MODEL = "app_account.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
+        "utils.token.JWTAuthentication",  # This is a customized authentication
     ],
+    # "DEFAULT_AUTHENTICATION_CLASSES": [
+    #     "rest_framework.authentication.SessionAuthentication",
+    #     "rest_framework.authentication.BasicAuthentication",
+    # ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Order Service API",
+    "DESCRIPTION": "Django microservice for orders and products",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SECURITY": [{"BearerAuth": []}],
+    "COMPONENT_SPLIT_REQUEST": True,
+    "COMPONENT_NO_READ_ONLY_REQUIRED": True,
+    "COMPONENT_SPLIT_PATCH": True,
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
 }

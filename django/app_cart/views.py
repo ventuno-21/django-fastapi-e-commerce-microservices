@@ -1,18 +1,31 @@
 # cart_app/views.py
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from .models import Product, Order, Category
-from .serializers import ProductSerializer, OrderSerializer, CategorySerializer
-from .cart import Cart
+from utils.logger import logger
+
 from django.conf import settings
+from django.shortcuts import get_object_or_404
+
+from .cart import Cart
+from .models import Category, Order, Product
+from .serializers import CategorySerializer, OrderSerializer, ProductSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.filter(is_active=True)
-    serializer_class = CategorySerializer
+    serializer_class = ProductSerializer
+
+    def create(self, request, *args, **kwargs):
+        logger.debug(
+            f"inside the create method of ProductViewset & user is is: {request.user.id}"
+        )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -39,23 +52,37 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])  # allow both guest and authenticated users
 def add_to_cart(request):
     """
-    body: { "product_id": 1, "quantity": 2 }
-    If user authenticated: use user cart, else use session cart.
+    Body: { "product_id": 1, "quantity": 2 }
+    - If user is authenticated (JWT), use user-based cart
+    - If user is a guest, use session-based cart
     """
     data = request.data
     pid = data.get("product_id")
     qty = int(data.get("quantity", 1))
-    if request.user.is_authenticated:
+
+    # Determine whether user is authenticated via JWT
+    if hasattr(request, "user") and getattr(request.user, "is_authenticated", False):
+        # Authenticated user → cart keyed by user_id
         cart = Cart(user_id=request.user.id)
     else:
-        # ensure session exists
+        # Guest user → cart keyed by session_id
         if not request.session.session_key:
-            request.session.create()
+            request.session.create()  # create new session if not exists
         cart = Cart(session_id=request.session.session_key)
+
+    # Add product to cart
     cart.add(pid, qty)
-    return Response({"status": "ok", "cart_items": len(cart.items())})
+
+    # Return number of items in cart
+    return Response(
+        {
+            "status": "ok",
+            "cart_items": len(cart.items()),
+        }
+    )
 
 
 @api_view(["GET"])

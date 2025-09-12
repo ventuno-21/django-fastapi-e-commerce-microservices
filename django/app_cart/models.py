@@ -51,8 +51,9 @@ class Order(models.Model):
         ("shipped", "Shipped"),
         ("cancelled", "Cancelled"),
     ]
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
-    email = models.EmailField()
+    user_id = models.IntegerField(null=True, blank=True)
+    # user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    email = models.EmailField(null=True, blank=True)
     total = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(default=timezone.now)

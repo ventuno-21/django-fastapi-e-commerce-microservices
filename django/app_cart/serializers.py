@@ -1,6 +1,7 @@
 # cart_app/serializers.py
 from rest_framework import serializers
 from .models import Product, Category, Order, OrderItem
+from utils.logger import logger
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -10,11 +11,11 @@ class CategorySerializer(serializers.ModelSerializer):
     def get_parnt_id_name(self, obj):
 
         if obj.parent:
-            x = f"parnet id : {obj.parent.id} , parnet name: {obj.parent.name} "
-            return x
+            result = f"parnet id : {obj.parent.id} , parnet name: {obj.parent.name} "
+            return result
 
-        x = f"No parent id or name "
-        return x
+        result = f"No parent id or name "
+        return result
 
     class Meta:
         model = Category
@@ -62,5 +63,5 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "user", "email", "total", "status", "created_at", "items"]
-        read_only_fields = ["total", "status", "created_at", "user"]
+        fields = ["id", "user_id", "email", "total", "status", "created_at", "items"]
+        read_only_fields = ["total", "status", "created_at", "user_id"]

@@ -13,6 +13,16 @@ async def get_user_by_username(username: str):
         return result.scalars().first()
 
 
+# Like above and below functiosn that are commented out but wuth session dependencies
+# async def get_user_by_username(
+#     username: str,
+#     session: AsyncSession = Depends(get_session),  # Use session dependency
+# ):
+#     q = select(User).where(User.username == username)
+#     result = await session.execute(q)
+#     return result.scalars().first()
+
+
 # with sqlmodel
 # async def get_user_by_username(username: str):
 #     async with AsyncSessionLocal() as session:
