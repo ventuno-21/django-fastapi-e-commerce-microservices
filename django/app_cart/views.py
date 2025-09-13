@@ -14,7 +14,7 @@ from .serializers import CategorySerializer, OrderSerializer, ProductSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(is_active=True)
+    queryset = Product.objects.filter(is_active=True).order_by("id")
     serializer_class = ProductSerializer
 
     def create(self, request, *args, **kwargs):

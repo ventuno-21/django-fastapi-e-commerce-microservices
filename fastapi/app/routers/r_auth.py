@@ -5,12 +5,15 @@ from ..database.db import init_db
 from ..database.models import User, UserRead
 from ..database.schemas import LoginRequest, MeResponse, RegisterRequest, TokenResponse
 from ..services import s_user
+from ..logger import logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=UserRead)
 async def register(payload: RegisterRequest):
+    logger.debug("inside fastapi routers/r_auth/register function")
+
     existing = await s_user.get_user_by_username(payload.username)
     if existing:
         raise HTTPException(status_code=400, detail="username already exists")
@@ -24,6 +27,8 @@ async def register(payload: RegisterRequest):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest):
+    logger.debug("inside fastapi routers/r_auth/login function")
+
     user = await s_user.get_user_by_username(payload.username)
     if not user or not auth.verify_password(payload.password, user.hashed_password):
         raise HTTPException(

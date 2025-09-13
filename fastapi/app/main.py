@@ -1,11 +1,14 @@
-from fastapi import FastAPI, Depends
+import os
+from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from .database.schemas import MeResponse
 from .routers import r_auth, r_user
 from .routers.deps import get_current_user
-from .database.schemas import MeResponse
-import os
-from dotenv import load_dotenv
-from contextlib import asynccontextmanager
 
 load_dotenv()
 
@@ -21,14 +24,21 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="FastAPI User & Auth Service", lifespan=lifespan)
 
+
+origins = [
+    "http://localhost:3000",  # React/Vue frontend
+    "http://127.0.0.1:3000",
+]
+
 # CORS - allow for local dev & frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Routers
 app.include_router(r_auth.router)
